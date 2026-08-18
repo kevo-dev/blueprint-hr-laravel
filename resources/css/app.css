@@ -1,0 +1,16 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+:root { --bp-navy: #0f172a; --bp-blue: #2563eb; --bp-muted: #64748b; --bp-surface: #f8fafc; }
+body { background: var(--bp-surface); color: #0f172a; font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif; }
+.app-shell { min-height: 100vh; }
+.sidebar { width: 255px; min-height: 100vh; background: var(--bp-navy); color: #e2e8f0; }
+.sidebar .nav-link { color: #94a3b8; border-radius: .5rem; margin: .15rem .75rem; }
+.sidebar .nav-link:hover, .sidebar .nav-link.active { color: white; background: rgba(37,99,235,.78); }
+.brand-mark { width: 38px; height: 38px; display: grid; place-items: center; border-radius: .7rem; background: linear-gradient(135deg,#2563eb,#38bdf8); color: white; font-weight: 800; }
+.metric-card { border: 0; box-shadow: 0 .25rem 1rem rgba(15,23,42,.07); }
+.metric-card .metric-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: .75rem; }
+.content-area { flex: 1; min-width: 0; }
+.table thead th { white-space: nowrap; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--bp-muted); }
+.login-card { max-width: 430px; width: 100%; box-shadow: 0 1.25rem 3rem rgba(15,23,42,.15); }
+@media (max-width: 992px) { .sidebar { width: 78px; } .sidebar .brand-copy, .sidebar .nav-label, .sidebar .user-copy { display: none; } .sidebar .nav-link { text-align:center; margin-inline: .5rem; } }
