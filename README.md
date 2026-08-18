@@ -53,7 +53,7 @@ The seeder creates a demo tenant, organization structure, Kenyan statutory rates
 
 ## Authentication and API
 
-The Vue client uses Sanctum’s stateful SPA flow. It first requests `/sanctum/csrf-cookie`, then posts credentials to `/api/auth/login`; Axios is configured to send the XSRF token and session credentials. The authenticated API is tenant-scoped through `EnsureTenantContext` and role-gated through `RoleMiddleware`.
+The Vue client uses Sanctum’s stateful SPA flow. It first requests `/sanctum/csrf-cookie`, then posts credentials to `/api/auth/login`; Axios is configured to send the XSRF token and session credentials. The authenticated API is tenant-scoped through `EnsureTenantContext` and role-gated through `RoleMiddleware`. Resource-level decisions are enforced again through Laravel policies registered in `AppServiceProvider`: employees, leave requests, payroll periods, payroll transactions, organization mutations, employee exports, and payslip downloads all apply tenant ownership and role/employee ownership rules at the controller boundary. Tenant-owned models expose a reusable `forTenant()` Eloquent scope through `App\Models\Concerns\BelongsToTenant`; controllers and exports use this scope instead of relying on scattered raw `where('tenant_id', ...)` predicates.
 
 Important endpoints include:
 
@@ -79,7 +79,7 @@ Payroll is configuration-driven rather than hard-coding all statutory values in 
 
 ## Testing and quality checks
 
-The repository includes feature tests covering Sanctum login and dashboard access, cross-tenant reference rejection, leave submission and approval side effects, payroll statutory deductions, Excel export, and DomPDF payslips.
+The repository includes feature tests covering Sanctum login and dashboard access, cross-tenant reference rejection, leave submission and approval side effects, payroll statutory deductions, Excel export, and DomPDF payslips. `tests/Feature/RbacAuthorizationTest.php` covers route-level authorization, employee self-service isolation, tenant concealment, report ownership, and privilege-escalation attempts. `tests/Unit/AuthorizationPolicyTest.php` tests policy decisions directly. GitHub Actions in `.github/workflows/ci.yml` runs PHP linting, Composer audit, MySQL migrations, the complete PHPUnit suite, the Vite build, and the production NPM audit on pushes and pull requests.
 
 ```bash
 php artisan test

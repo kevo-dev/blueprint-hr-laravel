@@ -1,10 +1,14 @@
 <?php
 namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Employee extends Model
 {
+    use BelongsToTenant;
+
     use HasFactory, SoftDeletes;
     protected $fillable = ['tenant_id','employee_no','payroll_no','first_name','middle_name','last_name','gender','dob','id_no','kra_pin','nssf_no','shif_no','phone','email','branch_id','department_id','designation_id','grade_id','employment_type_id','employment_date','employment_status','basic_salary','bank_name','bank_branch','account_number'];
     protected $hidden = ['id_no','kra_pin','nssf_no','shif_no','account_number'];

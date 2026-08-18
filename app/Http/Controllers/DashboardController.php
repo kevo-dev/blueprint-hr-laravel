@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use App\Models\AuditLog;
 use App\Models\Branch;
 use App\Models\Department;
@@ -9,16 +11,60 @@ use App\Models\PayrollPeriod;
 use App\Models\PayrollTransaction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+
 class DashboardController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $tenantId = $request->attributes->get('tenant_id');
+        Gate::authorize('viewAny', Employee::class);
+        $tenantId = (int) $request->attributes->get('tenant_id');
         $user = $request->user();
-        $employeeQuery = Employee::query()->where('tenant_id',$tenantId)->where('employment_status','Active');
-        if ($user->hasRole('Employee') && $user->employee_id) $employeeQuery->whereKey($user->employee_id);
-        $employees = (clone $employeeQuery)->with(['department','branch'])->latest()->limit(5)->get();
-        $payroll = PayrollTransaction::query()->where('tenant_id',$tenantId)->whereHas('employee',fn($q)=>$q->where('employment_status','Active'))->sum('gross_pay');
-        return response()->json(['metrics'=>['headcount'=>$employeeQuery->count(),'monthly_payroll'=>(float)$payroll,'branches'=>Branch::where('tenant_id',$tenantId)->count(),'departments'=>Department::where('tenant_id',$tenantId)->count(),'pending_leave'=>LeaveRequest::where('tenant_id',$tenantId)->where('status','Pending')->count()], 'tenant'=>$user->tenant, 'employees'=>$employees, 'periods'=>PayrollPeriod::where('tenant_id',$tenantId)->latest()->get(), 'recent_audit'=>AuditLog::where('tenant_id',$tenantId)->latest()->limit(10)->get()]);
+        $isEmployee = $user->hasRole('Employee');
+
+        $employeeQuery = Employee::query()
+            ->forTenant($tenantId)
+            ->where('employment_status', 'Active');
+        if ($isEmployee && $user->employee_id) {
+            $employeeQuery->whereKey($user->employee_id);
+        }
+
+        $employees = (clone $employeeQuery)
+            ->with(['department', 'branch'])
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        $payrollQuery = PayrollTransaction::query()
+            ->forTenant($tenantId)
+            ->whereHas('employee', fn ($query) => $query->where('employment_status', 'Active'));
+        if ($isEmployee && $user->employee_id) {
+            $payrollQuery->where('employee_id', $user->employee_id);
+        }
+
+        $periodQuery = PayrollPeriod::query()->forTenant($tenantId);
+        if ($isEmployee && $user->employee_id) {
+            $periodQuery->whereHas('transactions', fn ($query) => $query->where('employee_id', $user->employee_id));
+        }
+
+        $recentAudit = $isEmployee
+            ? collect()
+            : AuditLog::query()->forTenant($tenantId)->latest()->limit(10)->get();
+
+        return response()->json([
+            'metrics' => [
+                'headcount' => $employeeQuery->count(),
+                'monthly_payroll' => (float) $payrollQuery->sum('gross_pay'),
+                'branches' => $isEmployee ? 0 : Branch::query()->forTenant($tenantId)->count(),
+                'departments' => $isEmployee ? 0 : Department::query()->forTenant($tenantId)->count(),
+                'pending_leave' => $isEmployee
+                    ? LeaveRequest::query()->forTenant($tenantId)->where('employee_id', $user->employee_id)->where('status', 'Pending')->count()
+                    : LeaveRequest::query()->forTenant($tenantId)->where('status', 'Pending')->count(),
+            ],
+            'tenant' => $user->tenant()->select(['id', 'name'])->first(),
+            'employees' => $employees,
+            'periods' => $periodQuery->latest()->get(),
+            'recent_audit' => $recentAudit,
+        ]);
     }
 }

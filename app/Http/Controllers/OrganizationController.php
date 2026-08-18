@@ -9,26 +9,28 @@ use App\Models\EmploymentType;
 use App\Models\Grade;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 
 class OrganizationController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $tenant = $request->attributes->get('tenant_id');
+        $tenantId = (int) $request->attributes->get('tenant_id');
 
         return response()->json([
-            'branches' => Branch::where('tenant_id', $tenant)->with('departments')->get(),
-            'departments' => Department::where('tenant_id', $tenant)->with('branch')->get(),
-            'designations' => Designation::where('tenant_id', $tenant)->get(),
-            'grades' => Grade::where('tenant_id', $tenant)->get(),
-            'employment_types' => EmploymentType::where('tenant_id', $tenant)->get(),
+            'branches' => Branch::query()->forTenant($tenantId)->with('departments')->get(),
+            'departments' => Department::query()->forTenant($tenantId)->with('branch')->get(),
+            'designations' => Designation::query()->forTenant($tenantId)->get(),
+            'grades' => Grade::query()->forTenant($tenantId)->get(),
+            'employment_types' => EmploymentType::query()->forTenant($tenantId)->get(),
         ]);
     }
 
     public function storeBranch(Request $request): JsonResponse
     {
-        $tenantId = $request->attributes->get('tenant_id');
+        Gate::authorize('manageOrganization');
+        $tenantId = (int) $request->attributes->get('tenant_id');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'code' => ['required', 'string', 'max:30', Rule::unique('branches')->where(fn ($query) => $query->where('tenant_id', $tenantId))],
@@ -40,7 +42,8 @@ class OrganizationController extends Controller
 
     public function storeDepartment(Request $request): JsonResponse
     {
-        $tenantId = $request->attributes->get('tenant_id');
+        Gate::authorize('manageOrganization');
+        $tenantId = (int) $request->attributes->get('tenant_id');
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'code' => ['required', 'string', 'max:30', Rule::unique('departments')->where(fn ($query) => $query->where('tenant_id', $tenantId))],
