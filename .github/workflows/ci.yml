@@ -55,6 +55,21 @@ jobs:
       - name: Composer dependency audit
         run: composer audit --no-interaction
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: NPM production dependency audit
+        run: npm audit --omit=dev
+
       - name: Prepare Laravel environment
         run: |
           cp .env.example .env
@@ -97,18 +112,3 @@ jobs:
           DB_USERNAME: blueprint_hr
           DB_PASSWORD: blueprint_hr_password
           QUEUE_CONNECTION: sync
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-
-      - name: Install frontend dependencies
-        run: npm ci
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: NPM production dependency audit
-        run: npm audit --omit=dev
