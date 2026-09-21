@@ -87,7 +87,7 @@ jobs:
         run: find app database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
 
       - name: Run authorization and application tests
-        run: php artisan test --no-interaction
+        run: php artisan test
         env:
           APP_ENV: testing
           DB_CONNECTION: mysql
