@@ -61,7 +61,7 @@ class DashboardController extends Controller
                     ? LeaveRequest::query()->forTenant($tenantId)->where('employee_id', $user->employee_id)->where('status', 'Pending')->count()
                     : LeaveRequest::query()->forTenant($tenantId)->where('status', 'Pending')->count(),
             ],
-            'tenant' => $user->tenant()->select(['id', 'name'])->first(),
+            'tenant' => $user->tenant()->select(['id', 'company_name', 'kra_pin', 'email', 'phone', 'address'])->first(),
             'employees' => $employees,
             'periods' => $periodQuery->latest()->get(),
             'recent_audit' => $recentAudit,
