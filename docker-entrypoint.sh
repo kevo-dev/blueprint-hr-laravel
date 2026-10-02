@@ -1,7 +1,13 @@
 #!/bin/bash
 set -e
 
-# Run database migrations
+# Ensure APP_KEY is present
+if [ -z "$APP_KEY" ]; then
+    echo "APP_KEY not set. Generating application key..."
+    php artisan key:generate --force
+fi
+
+# Run database migrations and seeder
 echo "Running database migrations..."
 php artisan migrate --force --seed || echo "Migration/seeding warning"
 
