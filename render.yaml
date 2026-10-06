@@ -1,0 +1,51 @@
+services:
+  - type: web
+    name: blueprint-hr-laravel-api
+    runtime: docker
+    repo: https://github.com/kevo-dev/blueprint-hr-laravel
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeploy: true
+    envVars:
+      - key: APP_NAME
+        value: BluePrint HR
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: db.ppzyodlciwpgoygxxktv.supabase.co
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        value: postgres
+      - key: DB_USERNAME
+        value: postgres
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://blueprint-hr-laravel-frontend-brocodezs-projects.vercel.app
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: localhost,127.0.0.1
+      - key: BLUEPRINT_ADMIN_EMAIL
+        value: admin@blueprint.test
+      - key: BLUEPRINT_ADMIN_PASSWORD
+        sync: false
+      - key: BLUEPRINT_DEMO_PASSWORD
+        sync: false
