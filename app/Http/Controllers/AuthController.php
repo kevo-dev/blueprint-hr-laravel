@@ -12,13 +12,18 @@ class AuthController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
-        if (! Auth::attempt($request->validated(), $request->boolean('remember'))) {
+        if (! Auth::attempt($request->validated())) {
             throw ValidationException::withMessages(['email' => 'The provided credentials are incorrect.']);
         }
 
-        $request->session()->regenerate();
+        $user = $request->user();
+        $user->tokens()->where('name', 'blueprint-hr-web')->delete();
+        $token = $user->createToken('blueprint-hr-web')->plainTextToken;
 
-        return response()->json(['user' => $this->userPayload($request)]);
+        return response()->json([
+            'token' => $token,
+            'user' => $this->userPayload($request),
+        ]);
     }
 
     public function me(Request $request): JsonResponse
@@ -28,9 +33,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Signed out successfully.']);
     }
