@@ -9,8 +9,8 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('web')->prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->middleware('guest');
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/logout', [AuthController::class, 'logout']);
