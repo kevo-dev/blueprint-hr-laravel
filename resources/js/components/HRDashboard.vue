@@ -2,6 +2,12 @@
 import { computed, onMounted, reactive, ref } from 'vue';
 import axios from 'axios';
 
+const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const api = axios.create({ baseURL: API_URL });
+const savedToken = localStorage.getItem('bp_token');
+if (savedToken) api.defaults.headers.common.Authorization = `Bearer ${savedToken}`;
+api.interceptors.response.use(response => response, error => { if (error.response?.status === 401) { localStorage.removeItem('bp_token'); delete api.defaults.headers.common.Authorization; user.value = null; } return Promise.reject(error); });
+
 const user = ref(null);
 const loading = ref(false);
 const error = ref('');
@@ -22,16 +28,16 @@ const canProcessPayroll = computed(() => ['Super Admin','Company Admin','Payroll
 const money = (value) => new Intl.NumberFormat('en-KE', { style:'currency', currency:'KES', maximumFractionDigits:0 }).format(Number(value || 0));
 const fullName = (row) => row?.full_name || [row?.first_name,row?.middle_name,row?.last_name].filter(Boolean).join(' ');
 
-async function apiGet(url, params = {}) { const response = await axios.get(url, { params }); return response.data; }
+async function apiGet(url, params = {}) { const response = await api.get(url, { params }); return response.data; }
 async function loadAll() { loading.value = true; error.value = ''; try { dashboard.value = await apiGet('/api/dashboard'); employees.value = await apiGet('/api/employees'); organization.value = await apiGet('/api/organization'); leave.value = await apiGet('/api/leave'); payroll.value = await apiGet('/api/payroll'); } catch (e) { error.value = e.response?.data?.message || 'Unable to load HR data.'; } finally { loading.value = false; } }
-async function signIn() { loading.value = true; error.value = ''; try { await axios.get('/sanctum/csrf-cookie'); const response = await axios.post('/api/auth/login', login); user.value = response.data.user; await loadAll(); } catch (e) { error.value = e.response?.data?.message || 'Sign in failed.'; } finally { loading.value = false; } }
-async function signOut() { await axios.post('/api/auth/logout'); user.value = null; }
-async function createEmployee() { error.value=''; try { await axios.post('/api/employees', employeeForm); Object.assign(employeeForm,{employee_no:'',first_name:'',middle_name:'',last_name:'',email:'',phone:'',employment_status:'Active',basic_salary:0,branch_id:null,department_id:null}); await loadAll(); active.value='employees'; } catch(e) { error.value=e.response?.data?.message || 'Could not create employee.'; } }
-async function submitLeave() { try { await axios.post('/api/leave/requests', leaveForm); Object.assign(leaveForm,{employee_id:null,leave_type_id:null,start_date:'',end_date:'',days_requested:1,reason:''}); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not submit leave request.'; } }
-async function decideLeave(request, status) { try { await axios.post(`/api/leave/requests/${request.id}/decision`, { status, decision_comment: status === 'Approved' ? 'Approved in HR workspace' : 'Decision recorded in HR workspace' }); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not update leave request.'; } }
-async function processPayroll(periodId) { if (!periodId) return; try { await axios.post('/api/payroll/process', { payroll_period_id: periodId }); await loadAll(); active.value='payroll'; } catch(e) { error.value=e.response?.data?.message || 'Could not process payroll.'; } }
-function downloadEmployees() { window.location.href = '/api/reports/employees.xlsx'; }
-function downloadPayslip(transactionId) { window.location.href = `/api/reports/payslips/${transactionId}.pdf`; }
+async function signIn() { loading.value = true; error.value = ''; try { await ; const response = await api.post('/api/auth/login', login); localStorage.setItem('bp_token', response.data.token); api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`; user.value = response.data.user; await loadAll(); } catch (e) { error.value = e.response?.data?.message || 'Sign in failed.'; } finally { loading.value = false; } }
+async function signOut() { try { await api.post('/api/auth/logout'); } finally { localStorage.removeItem('bp_token'); delete api.defaults.headers.common.Authorization; user.value = null; } }
+async function createEmployee() { error.value=''; try { await api.post('/api/employees', employeeForm); Object.assign(employeeForm,{employee_no:'',first_name:'',middle_name:'',last_name:'',email:'',phone:'',employment_status:'Active',basic_salary:0,branch_id:null,department_id:null}); await loadAll(); active.value='employees'; } catch(e) { error.value=e.response?.data?.message || 'Could not create employee.'; } }
+async function submitLeave() { try { await api.post('/api/leave/requests', leaveForm); Object.assign(leaveForm,{employee_id:null,leave_type_id:null,start_date:'',end_date:'',days_requested:1,reason:''}); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not submit leave request.'; } }
+async function decideLeave(request, status) { try { await api.post(`/api/leave/requests/${request.id}/decision`, { status, decision_comment: status === 'Approved' ? 'Approved in HR workspace' : 'Decision recorded in HR workspace' }); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not update leave request.'; } }
+async function processPayroll(periodId) { if (!periodId) return; try { await api.post('/api/payroll/process', { payroll_period_id: periodId }); await loadAll(); active.value='payroll'; } catch(e) { error.value=e.response?.data?.message || 'Could not process payroll.'; } }
+function downloadEmployees() { window.location.href = `${API_URL}/api/reports/employees.xlsx`; }
+function downloadPayslip(transactionId) { window.location.href = `${API_URL}/api/reports/payslips/${transactionId}.pdf`; }
 onMounted(async () => { try { const response=await apiGet('/api/auth/me'); user.value=response.user; await loadAll(); } catch (_) {} });
 </script>
 
