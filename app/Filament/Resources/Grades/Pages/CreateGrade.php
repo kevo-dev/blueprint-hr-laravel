@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\Grades\\Pages;
+namespace App\Filament\Resources\Grades\Pages;
 
-use App\\Filament\\Resources\\Grades\\GradeResource;
-use App\\Filament\\Resources\\Pages\\TenantCreateRecord;
+use App\Filament\Resources\Grades\GradeResource;
+use App\Filament\Resources\Pages\TenantCreateRecord;
 
 class CreateGrade extends TenantCreateRecord
 {
