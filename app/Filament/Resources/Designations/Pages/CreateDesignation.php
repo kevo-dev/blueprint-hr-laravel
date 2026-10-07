@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\Designations\\Pages;
+namespace App\Filament\Resources\Designations\Pages;
 
-use App\\Filament\\Resources\\Designations\\DesignationResource;
-use App\\Filament\\Resources\\Pages\\TenantCreateRecord;
+use App\Filament\Resources\Designations\DesignationResource;
+use App\Filament\Resources\Pages\TenantCreateRecord;
 
 class CreateDesignation extends TenantCreateRecord
 {
