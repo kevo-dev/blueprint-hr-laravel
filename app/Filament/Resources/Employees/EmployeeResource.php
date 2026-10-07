@@ -19,13 +19,14 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use UnitEnum;
 
 class EmployeeResource extends Resource
 {
     protected static ?string $model = Employee::class;
 
-    protected static ?string $navigationGroup = 'People';
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static string|UnitEnum|null $navigationGroup = 'People';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 10;
     protected static ?string $recordTitleAttribute = 'employee_no';
 
