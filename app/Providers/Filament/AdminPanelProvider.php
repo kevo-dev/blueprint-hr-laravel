@@ -5,8 +5,6 @@ namespace App\Providers\Filament;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Http\Middleware\Authenticate;
-
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -31,11 +29,6 @@ class AdminPanelProvider extends PanelProvider
                 in: app_path('Filament/Widgets'),
                 for: 'App\\Filament\\Widgets',
             )
-            ->middleware([
-                Authenticate::class,
-            ])
-            ->authMiddleware([
-                Authenticate::class,
-            ]);
+            ;
     }
 }
