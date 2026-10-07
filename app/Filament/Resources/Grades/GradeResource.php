@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Filament\\Resources\\Grades;
+namespace App\Filament\Resources\Grades;
 
-use App\\Filament\\Resources\\Grades\\Pages\\CreateGrade;
-use App\\Filament\\Resources\\Grades\\Pages\\EditGrade;
-use App\\Filament\\Resources\\Grades\\Pages\\ListGrades;
-use App\\Filament\\Resources\\TenantScopedResource;
-use App\\Models\\Grade;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use App\Filament\Resources\Grades\Pages\CreateGrade;
+use App\Filament\Resources\Grades\Pages\EditGrade;
+use App\Filament\Resources\Grades\Pages\ListGrades;
+use App\Filament\Resources\TenantScopedResource;
+use App\Models\Grade;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 use BackedEnum;
 
@@ -35,11 +35,11 @@ class GradeResource extends TenantScopedResource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(), TextColumn::make('level')->sortable(), TextColumn::make('min_salary')->money('KES')->sortable(), TextColumn::make('max_salary')->money('KES')->sortable(),
         ])->recordActions([
-            \Filament\\Actions\\EditAction::make(),
-            \Filament\\Actions\\DeleteAction::make(),
+            \Filament\Actions\EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ])->toolbarActions([
-            \Filament\\Actions\\BulkActionGroup::make([
-                \Filament\\Actions\\DeleteBulkAction::make(),
+            \Filament\Actions\BulkActionGroup::make([
+                \Filament\Actions\DeleteBulkAction::make(),
             ]),
         ]);
     }
