@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Pages;
 use Filament\Support\Colors\Color;
 class AdminPanelProvider extends PanelProvider
 {
@@ -18,6 +19,9 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Blue,
+            ])
+            ->pages([
+                Pages\Dashboard::class,
             ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),
