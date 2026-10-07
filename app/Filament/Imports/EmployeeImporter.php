@@ -16,10 +16,7 @@ class EmployeeImporter extends Importer
         $tenantId = (int) auth()->user()?->tenant_id;
 
         return [
-            ImportColumn::make('employee_no')->requiredMapping()->rules([
-                'required','string','max:50',
-                Rule::unique('employees','employee_no')->where(fn ($q) => $q->where('tenant_id',$tenantId)),
-            ]),
+            ImportColumn::make('employee_no')->requiredMapping()->rules(['required','string','max:50']),
             ImportColumn::make('payroll_no')->rules(['nullable','string','max:50']),
             ImportColumn::make('first_name')->requiredMapping()->rules(['required','string','max:100']),
             ImportColumn::make('middle_name')->rules(['nullable','string','max:100']),
@@ -49,11 +46,7 @@ class EmployeeImporter extends Importer
     public function resolveRecord(): ?Employee
     {
         $tenantId = (int) auth()->user()?->tenant_id;
-
-        return Employee::withoutGlobalScopes()
-            ->where('tenant_id',$tenantId)
-            ->where('employee_no',$this->data['employee_no'] ?? '')
-            ->first() ?? new Employee();
+        return Employee::withoutGlobalScopes()->where('tenant_id',$tenantId)->where('employee_no',$this->data['employee_no'] ?? '')->first() ?? new Employee();
     }
 
     protected function beforeSave(): void
@@ -64,9 +57,7 @@ class EmployeeImporter extends Importer
     public static function getCompletedNotificationBody(Import $import): string
     {
         $body = 'Employee import completed: '.number_format($import->successful_rows).' '.str('employee')->plural($import->successful_rows).' imported.';
-        if ($failed = $import->getFailedRowsCount()) {
-            $body .= ' '.number_format($failed).' '.str('row')->plural($failed).' failed.';
-        }
+        if ($failed = $import->getFailedRowsCount()) $body .= ' '.number_format($failed).' '.str('row')->plural($failed).' failed.';
         return $body;
     }
 }
