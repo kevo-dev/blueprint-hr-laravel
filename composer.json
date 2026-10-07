@@ -3,7 +3,13 @@
     "name": "blueprint/blueprint-hr-laravel",
     "type": "project",
     "description": "BluePrint HR multi-tenant HR and payroll platform powered by Laravel 12.",
-    "keywords": ["laravel", "hr", "payroll", "kenya", "sanctum"],
+    "keywords": [
+        "laravel",
+        "hr",
+        "payroll",
+        "kenya",
+        "sanctum"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.3",
@@ -11,7 +17,8 @@
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.10.1",
-        "maatwebsite/excel": "^3.1"
+        "maatwebsite/excel": "^3.1",
+        "filament/filament": "^5.8.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
