@@ -1,9 +1,9 @@
 <?php
 
-namespace App\\Filament\\Resources\\Designations\\Pages;
+namespace App\Filament\Resources\Designations\Pages;
 
-use App\\Filament\\Resources\\Designations\\DesignationResource;
-use Filament\\Resources\\Pages\\EditRecord;
+use App\Filament\Resources\Designations\DesignationResource;
+use Filament\Resources\Pages\EditRecord;
 
 class EditDesignation extends EditRecord
 {
