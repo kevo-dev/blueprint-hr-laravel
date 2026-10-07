@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Filament\\Resources\\Departments;
+namespace App\Filament\Resources\Departments;
 
-use App\\Filament\\Resources\\Departments\\Pages\\CreateDepartment;
-use App\\Filament\\Resources\\Departments\\Pages\\EditDepartment;
-use App\\Filament\\Resources\\Departments\\Pages\\ListDepartments;
-use App\\Filament\\Resources\\TenantScopedResource;
-use App\\Models\\Department;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use App\Filament\Resources\Departments\Pages\CreateDepartment;
+use App\Filament\Resources\Departments\Pages\EditDepartment;
+use App\Filament\Resources\Departments\Pages\ListDepartments;
+use App\Filament\Resources\TenantScopedResource;
+use App\Models\Department;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 use BackedEnum;
 
@@ -35,11 +35,11 @@ class DepartmentResource extends TenantScopedResource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(), TextColumn::make('code')->searchable()->sortable(), TextColumn::make('branch.name')->label('Branch')->sortable()->searchable(),
         ])->recordActions([
-            \Filament\\Actions\\EditAction::make(),
-            \Filament\\Actions\\DeleteAction::make(),
+            \Filament\Actions\EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ])->toolbarActions([
-            \Filament\\Actions\\BulkActionGroup::make([
-                \Filament\\Actions\\DeleteBulkAction::make(),
+            \Filament\Actions\BulkActionGroup::make([
+                \Filament\Actions\DeleteBulkAction::make(),
             ]),
         ]);
     }
