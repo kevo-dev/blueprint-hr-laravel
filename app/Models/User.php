@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Enums\Role;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -30,6 +32,11 @@ class User extends Authenticatable
     public function tenant() { return $this->belongsTo(Tenant::class); }
     public function employee() { return $this->belongsTo(Employee::class); }
     public function auditLogs() { return $this->hasMany(AuditLog::class); }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->tenant_id !== null;
+    }
 
     public function hasRole(Role|string ...$roles): bool
     {
