@@ -1,9 +1,9 @@
 name: Bootstrap Filament dependency
 
 on:
-  push:
+  pull_request:
     branches:
-      - filament-overhaul/phase-1
+      - main
 
 permissions:
   contents: write
