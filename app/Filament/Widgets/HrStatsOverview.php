@@ -12,8 +12,6 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class HrStatsOverview extends StatsOverviewWidget
 {
-    protected static ?string $pollingInterval = null;
-
     protected function getStats(): array
     {
         $user = auth()->user();
