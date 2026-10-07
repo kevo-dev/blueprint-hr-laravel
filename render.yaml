@@ -22,13 +22,13 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
-        value: db.ppzyodlciwpgoygxxktv.supabase.co
+        value: aws-0-eu-west-1.pooler.supabase.com
       - key: DB_PORT
         value: "5432"
       - key: DB_DATABASE
         value: postgres
       - key: DB_USERNAME
-        value: postgres
+        value: postgres.ppzyodlciwpgoygxxktv
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
@@ -40,7 +40,7 @@ services:
       - key: QUEUE_CONNECTION
         value: sync
       - key: CORS_ALLOWED_ORIGINS
-        value: https://blueprint-hr-laravel-frontend-brocodezs-projects.vercel.app
+        value: https://blueprint-hr-laravel-frontend.vercel.app
       - key: SANCTUM_STATEFUL_DOMAINS
         value: localhost,127.0.0.1
       - key: BLUEPRINT_ADMIN_EMAIL
