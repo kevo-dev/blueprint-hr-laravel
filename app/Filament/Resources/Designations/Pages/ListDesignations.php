@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\Designations\\Pages;
+namespace App\Filament\Resources\Designations\Pages;
 
-use App\\Filament\\Resources\\Designations\\DesignationResource;
-use Filament\\Resources\\Pages\\ListRecords;
-use Filament\\Actions;
+use App\Filament\Resources\Designations\DesignationResource;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions;
 
 class ListDesignations extends ListRecords
 {
@@ -12,6 +12,6 @@ class ListDesignations extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\\CreateAction::make()];
+        return [Actions\CreateAction::make()];
     }
 }
