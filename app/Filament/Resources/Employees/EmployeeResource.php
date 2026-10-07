@@ -7,6 +7,7 @@ use App\Filament\Resources\Employees\Pages\EditEmployee;
 use App\Filament\Resources\Employees\Pages\ListEmployees;
 use App\Filament\Resources\Employees\Pages\ViewEmployee;
 use App\Models\Employee;
+use App\Enums\Role;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
@@ -29,6 +30,21 @@ class EmployeeResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
     protected static ?int $navigationSort = 10;
     protected static ?string $recordTitleAttribute = 'employee_no';
+
+    public static function canCreate(): bool
+    {
+        return (bool) auth()->user()?->role?->canManagePeople();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return (bool) auth()->user()?->role?->canManagePeople() && static::getEloquentQuery()->whereKey($record->getKey())->exists();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return static::canEdit($record);
+    }
 
     public static function form(Schema $schema): Schema
     {
