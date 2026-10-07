@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Filament\\Resources\\Branches;
+namespace App\Filament\Resources\Branches;
 
-use App\\Filament\\Resources\\Branches\\Pages\\CreateBranch;
-use App\\Filament\\Resources\\Branches\\Pages\\EditBranch;
-use App\\Filament\\Resources\\Branches\\Pages\\ListBranches;
-use App\\Filament\\Resources\\TenantScopedResource;
-use App\\Models\\Branch;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use App\Filament\Resources\Branches\Pages\CreateBranch;
+use App\Filament\Resources\Branches\Pages\EditBranch;
+use App\Filament\Resources\Branches\Pages\ListBranches;
+use App\Filament\Resources\TenantScopedResource;
+use App\Models\Branch;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 use BackedEnum;
 
@@ -35,11 +35,11 @@ class BranchResource extends TenantScopedResource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(), TextColumn::make('code')->searchable()->sortable(), TextColumn::make('location')->searchable(),
         ])->recordActions([
-            \Filament\\Actions\\EditAction::make(),
-            \Filament\\Actions\\DeleteAction::make(),
+            \Filament\Actions\EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ])->toolbarActions([
-            \Filament\\Actions\\BulkActionGroup::make([
-                \Filament\\Actions\\DeleteBulkAction::make(),
+            \Filament\Actions\BulkActionGroup::make([
+                \Filament\Actions\DeleteBulkAction::make(),
             ]),
         ]);
     }
