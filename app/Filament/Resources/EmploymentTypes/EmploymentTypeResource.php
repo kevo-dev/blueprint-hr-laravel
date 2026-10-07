@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Filament\\Resources\\EmploymentTypes;
+namespace App\Filament\Resources\EmploymentTypes;
 
-use App\\Filament\\Resources\\EmploymentTypes\\Pages\\CreateEmploymentType;
-use App\\Filament\\Resources\\EmploymentTypes\\Pages\\EditEmploymentType;
-use App\\Filament\\Resources\\EmploymentTypes\\Pages\\ListEmploymentTypes;
-use App\\Filament\\Resources\\TenantScopedResource;
-use App\\Models\\EmploymentType;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use App\Filament\Resources\EmploymentTypes\Pages\CreateEmploymentType;
+use App\Filament\Resources\EmploymentTypes\Pages\EditEmploymentType;
+use App\Filament\Resources\EmploymentTypes\Pages\ListEmploymentTypes;
+use App\Filament\Resources\TenantScopedResource;
+use App\Models\EmploymentType;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 use BackedEnum;
 
@@ -35,11 +35,11 @@ class EmploymentTypeResource extends TenantScopedResource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(), TextColumn::make('description')->limit(60),
         ])->recordActions([
-            \Filament\\Actions\\EditAction::make(),
-            \Filament\\Actions\\DeleteAction::make(),
+            \Filament\Actions\EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ])->toolbarActions([
-            \Filament\\Actions\\BulkActionGroup::make([
-                \Filament\\Actions\\DeleteBulkAction::make(),
+            \Filament\Actions\BulkActionGroup::make([
+                \Filament\Actions\DeleteBulkAction::make(),
             ]),
         ]);
     }
