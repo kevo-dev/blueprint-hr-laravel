@@ -4,7 +4,7 @@ namespace App\Providers\Filament;
 
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Pages;
+use App\Filament\Pages\Dashboard;
 use Filament\Support\Colors\Color;
 class AdminPanelProvider extends PanelProvider
 {
@@ -21,7 +21,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Blue,
             ])
             ->pages([
-                Pages\Dashboard::class,
+                Dashboard::class,
             ])
             ->discoverResources(
                 in: app_path('Filament/Resources'),
