@@ -1,18 +1,18 @@
 <?php
 
-namespace App\\Filament\\Resources\\Designations;
+namespace App\Filament\Resources\Designations;
 
-use App\\Filament\\Resources\\Designations\\Pages\\CreateDesignation;
-use App\\Filament\\Resources\\Designations\\Pages\\EditDesignation;
-use App\\Filament\\Resources\\Designations\\Pages\\ListDesignations;
-use App\\Filament\\Resources\\TenantScopedResource;
-use App\\Models\\Designation;
-use Filament\\Resources\\Resource;
-use Filament\\Schemas\\Schema;
-use Filament\\Forms\\Components\\Select;
-use Filament\\Forms\\Components\\TextInput;
-use Filament\\Tables\\Columns\\TextColumn;
-use Filament\\Tables\\Table;
+use App\Filament\Resources\Designations\Pages\CreateDesignation;
+use App\Filament\Resources\Designations\Pages\EditDesignation;
+use App\Filament\Resources\Designations\Pages\ListDesignations;
+use App\Filament\Resources\TenantScopedResource;
+use App\Models\Designation;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use UnitEnum;
 use BackedEnum;
 
@@ -35,11 +35,11 @@ class DesignationResource extends TenantScopedResource
         return $table->columns([
             TextColumn::make('name')->searchable()->sortable(), TextColumn::make('description')->limit(60),
         ])->recordActions([
-            \Filament\\Actions\\EditAction::make(),
-            \Filament\\Actions\\DeleteAction::make(),
+            \Filament\Actions\EditAction::make(),
+            \Filament\Actions\DeleteAction::make(),
         ])->toolbarActions([
-            \Filament\\Actions\\BulkActionGroup::make([
-                \Filament\\Actions\\DeleteBulkAction::make(),
+            \Filament\Actions\BulkActionGroup::make([
+                \Filament\Actions\DeleteBulkAction::make(),
             ]),
         ]);
     }
