@@ -1,10 +1,10 @@
 <?php
 
-namespace App\\Filament\\Resources\\Branches\\Pages;
+namespace App\Filament\Resources\Branches\Pages;
 
-use App\\Filament\\Resources\\Branches\\BranchResource;
-use Filament\\Resources\\Pages\\ListRecords;
-use Filament\\Actions;
+use App\Filament\Resources\Branches\BranchResource;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions;
 
 class ListBranches extends ListRecords
 {
@@ -12,6 +12,6 @@ class ListBranches extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [Actions\\CreateAction::make()];
+        return [Actions\CreateAction::make()];
     }
 }
