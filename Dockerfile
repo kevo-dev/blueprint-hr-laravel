@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libicu-dev \
     libzip-dev \
     libpq-dev \
     unzip \
@@ -14,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Configure & install PHP extensions required by Laravel, DomPDF, and Postgres
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) pdo_pgsql pdo_mysql gd zip bcmath opcache
+    && docker-php-ext-install -j$(nproc) pdo_pgsql pdo_mysql gd zip bcmath opcache intl
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
