@@ -36,8 +36,35 @@ async function createEmployee() { error.value=''; try { await api.post('/api/emp
 async function submitLeave() { try { await api.post('/api/leave/requests', leaveForm); Object.assign(leaveForm,{employee_id:null,leave_type_id:null,start_date:'',end_date:'',days_requested:1,reason:''}); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not submit leave request.'; } }
 async function decideLeave(request, status) { try { await api.post(`/api/leave/requests/${request.id}/decision`, { status, decision_comment: status === 'Approved' ? 'Approved in HR workspace' : 'Decision recorded in HR workspace' }); await loadAll(); } catch(e) { error.value=e.response?.data?.message || 'Could not update leave request.'; } }
 async function processPayroll(periodId) { if (!periodId) return; try { await api.post('/api/payroll/process', { payroll_period_id: periodId }); await loadAll(); active.value='payroll'; } catch(e) { error.value=e.response?.data?.message || 'Could not process payroll.'; } }
-function downloadEmployees() { window.location.href = `${API_URL}/api/reports/employees.xlsx`; }
-function downloadPayslip(transactionId) { window.location.href = `${API_URL}/api/reports/payslips/${transactionId}.pdf`; }
+async function downloadReport(path, fallbackFilename) {
+  error.value = '';
+  try {
+    const response = await api.get(path, { responseType: 'blob' });
+    const disposition = response.headers['content-disposition'] || '';
+    const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || fallbackFilename;
+    const blobUrl = window.URL.createObjectURL(new Blob([response.data], { type: response.headers['content-type'] || 'application/octet-stream' }));
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    if (e.response?.data instanceof Blob) {
+      try {
+        const payload = JSON.parse(await e.response.data.text());
+        error.value = payload.message || 'The report could not be downloaded.';
+      } catch (_) {
+        error.value = 'The report could not be downloaded.';
+      }
+    } else {
+      error.value = e.response?.data?.message || 'The report could not be downloaded.';
+    }
+  }
+}
+function downloadEmployees() { return downloadReport('/api/reports/employees.xlsx', 'employees.xlsx'); }
+function downloadPayslip(transactionId) { return downloadReport(`/api/reports/payslips/${transactionId}.pdf`, `payslip-${transactionId}.pdf`); }
 onMounted(async () => { try { const response=await apiGet('/api/auth/me'); user.value=response.user; await loadAll(); } catch (_) {} });
 </script>
 
