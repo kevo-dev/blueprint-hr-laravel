@@ -3,6 +3,7 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PayrollController;
@@ -23,6 +24,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::middleware('role:Super Admin,Company Admin,HR Manager')->group(function () {
         Route::post('/employees', [EmployeeController::class, 'store']);
+        Route::post('/employees/import', EmployeeImportController::class);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
         Route::post('/organization/branches', [OrganizationController::class, 'storeBranch']);
