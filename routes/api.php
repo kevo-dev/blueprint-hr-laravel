@@ -22,7 +22,7 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
     Route::middleware('role:Super Admin,Company Admin,HR Manager')->group(function () {
-        Route::post('/employees', [EmployeeController::class, 'store']);
+        Route::post('/employees', [EmployeeController::class, 'store']);\n        Route::post('/employees/import', EmployeeImportController::class);
         Route::put('/employees/{employee}', [EmployeeController::class, 'update']);
         Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy']);
         Route::post('/organization/branches', [OrganizationController::class, 'storeBranch']);
