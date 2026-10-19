@@ -55,6 +55,9 @@ class PayrollCalculationService
                 $basic = (float) $employee->basic_salary;
                 $allowances = 0.0;
                 $taxableGross = $basic;
+                $nssfBase = $basic;
+                $shifBase = $basic;
+                $housingBase = $basic;
                 $otherDeductions = 0.0;
                 $componentRows = [];
                 $employerFbt = 0.0;
@@ -82,15 +85,18 @@ class PayrollCalculationService
                     if (in_array($code->kind, ['earning', 'benefit'], true)) {
                         $allowances += $amount;
                         if ($code->taxable) $taxableGross += $amount;
+                        if ($code->affects_nssf) $nssfBase += $amount;
+                        if ($code->affects_shif) $shifBase += $amount;
+                        if ($code->affects_housing_levy) $housingBase += $amount;
                     } elseif ($code->kind === 'deduction') {
                         $otherDeductions += $amount;
                     }
                 }
 
                 $gross = $basic + $allowances;
-                $nssfAmount = $this->calculateNssf($gross, $nssf);
-                $shifAmount = max($shif ? $gross * (float) $shif->percentage : $gross * 0.0275, $shif ? (float) $shif->min_amount : 300);
-                $housingAmount = $gross * ($housing ? (float) $housing->employee_percentage : 0.015);
+                $nssfAmount = $this->calculateNssf($nssfBase, $nssf);
+                $shifAmount = max($shif ? $shifBase * (float) $shif->percentage : $shifBase * 0.0275, $shif ? (float) $shif->min_amount : 300);
+                $housingAmount = $housingBase * ($housing ? (float) $housing->employee_percentage : 0.015);
                 $taxable = max(0, $taxableGross - $nssfAmount - $shifAmount - $housingAmount);
                 $grossTax = $this->progressiveTax($taxable, $brackets);
                 $paye = max(0, $grossTax - $personalRelief);
