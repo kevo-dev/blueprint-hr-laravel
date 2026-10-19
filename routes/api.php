@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\EmployeeImportController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\PayrollConfigurationController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +36,19 @@ Route::middleware(['auth:sanctum', 'tenant'])->group(function () {
     Route::post('/leave/requests', [LeaveController::class, 'store']);
     Route::middleware('role:Super Admin,Company Admin,HR Manager')->post('/leave/requests/{leaveRequest}/decision', [LeaveController::class, 'approve']);
     Route::get('/payroll', [PayrollController::class, 'index']);
-    Route::middleware('role:Super Admin,Company Admin,Payroll Manager')->group(function () { Route::post('/payroll/periods', [PayrollController::class, 'store']); Route::post('/payroll/process', [PayrollController::class, 'process']); });
+    Route::middleware('role:Super Admin,Company Admin,Payroll Manager')->group(function () {
+        Route::post('/payroll/periods', [PayrollController::class, 'store']);
+        Route::post('/payroll/process', [PayrollController::class, 'process']);
+        Route::get('/payroll/configuration/codes', [PayrollConfigurationController::class, 'codes']);
+        Route::post('/payroll/configuration/codes', [PayrollConfigurationController::class, 'storeCode']);
+        Route::patch('/payroll/configuration/codes/{payrollCode}', [PayrollConfigurationController::class, 'updateCode']);
+        Route::post('/payroll/configuration/assignments', [PayrollConfigurationController::class, 'assignCode']);
+        Route::get('/payroll/loans', [PayrollConfigurationController::class, 'loans']);
+        Route::post('/payroll/loans', [PayrollConfigurationController::class, 'storeLoan']);
+        Route::patch('/payroll/loans/{employeeLoan}/status', [PayrollConfigurationController::class, 'updateLoanStatus']);
+        Route::get('/payroll/fbt-rates', [PayrollConfigurationController::class, 'fbtRates']);
+        Route::post('/payroll/fbt-rates', [PayrollConfigurationController::class, 'storeFbtRate']);
+    });
     Route::middleware('role:Super Admin,Company Admin,HR Manager')->get('/reports/employees.xlsx', [ReportController::class, 'employeeExcel']);
     Route::get('/reports/payslips/{transaction}.pdf', [ReportController::class, 'payslip']);
     Route::middleware('role:Super Admin,Company Admin,HR Manager')->get('/audit-logs', [AuditLogController::class, 'index']);
