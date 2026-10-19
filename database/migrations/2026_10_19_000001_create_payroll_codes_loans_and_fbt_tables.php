@@ -70,6 +70,8 @@ return new class extends Migration {
             $table->foreignId('employee_loan_id')->constrained('employee_loans')->cascadeOnDelete();
             $table->foreignId('payroll_period_id')->constrained()->cascadeOnDelete();
             $table->decimal('amount', 15, 2);
+            $table->decimal('principal_component', 15, 2)->default(0);
+            $table->decimal('interest_component', 15, 2)->default(0);
             $table->decimal('balance_after', 15, 2);
             $table->timestamps();
             $table->unique(['employee_loan_id', 'payroll_period_id']);
