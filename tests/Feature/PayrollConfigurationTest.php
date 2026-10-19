@@ -18,7 +18,10 @@ class PayrollConfigurationTest extends TestCase
     {
         $tenantA = Tenant::create(['company_name' => 'Tenant A', 'subdomain' => 'tenant-a-test']);
         $tenantB = Tenant::create(['company_name' => 'Tenant B', 'subdomain' => 'tenant-b-test']);
-        $user = User::create(['name' => 'Payroll Manager', 'email' => 'payroll-test@example.test', 'password' => Hash::make('secret')]);
+        $user = new User();
+        $user->name = 'Payroll Manager';
+        $user->email = 'payroll-test@example.test';
+        $user->password = Hash::make('secret');
         $user->tenant_id = $tenantA->id;
         $user->role = Role::PayrollManager;
         $user->save();
