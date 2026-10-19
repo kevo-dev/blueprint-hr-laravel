@@ -26,6 +26,13 @@ const employees = ref({ data: [] });
 const organization = ref({ branches: [], departments: [], designations: [], grades: [], employment_types: [] });
 const leave = ref({ types: [], balances: [], requests: [] });
 const payroll = ref({ periods: [], transactions: [] });
+const payrollConfig = ref({ codes: [], assignments: [] });
+const loans = ref([]);
+const fbtRates = ref([]);
+const codeForm = reactive({ code:'', name:'', kind:'earning', calculation_method:'fixed', default_amount:0, default_percentage:0, percentage_basis:'basic_salary', taxable:true, affects_nssf:false, affects_shif:false, affects_housing_levy:false, effective_from:'', effective_to:'' });
+const assignmentForm = reactive({ employee_id:'', payroll_code_id:'', calculation_method:'', amount:0, percentage:0, effective_from:'', effective_to:'' });
+const loanForm = reactive({ employee_id:'', loan_number:'', loan_type:'Staff loan', principal_amount:0, annual_interest_rate:0, monthly_repayment:0, disbursed_at:'', first_repayment_date:'', term_months:12, notes:'' });
+const fbtForm = reactive({ effective_from:'', effective_to:'', prescribed_annual_rate:0, fbt_tax_rate:30, source_reference:'' });
 const login = reactive({ email: '', password: '', remember: false });
 const employeeForm = reactive({ employee_no:'', first_name:'', middle_name:'', last_name:'', email:'', phone:'', employment_status:'Active', basic_salary:0, branch_id:null, department_id:null });
 const leaveForm = reactive({ employee_id:null, leave_type_id:null, start_date:'', end_date:'', days_requested:1, reason:'' });
@@ -90,6 +97,7 @@ async function loadAll() {
       apiGet('/api/leave'), apiGet('/api/payroll')
     ]);
     dashboard.value=d; employees.value=e; organization.value=o; leave.value=l; payroll.value=p;
+    if (canProcessPayroll.value) await loadPayrollConfiguration();
   } catch (e) { error.value=e.response?.data?.message || 'Unable to load HR data.'; }
   finally { loading.value=false; }
 }
@@ -123,6 +131,46 @@ async function submitLeave() {
 async function decideLeave(request, status) {
   try { await api.post(`/api/leave/requests/${request.id}/decision`, { status, decision_comment: status === 'Approved' ? 'Approved in HR workspace' : 'Decision recorded in HR workspace' }); await loadAll(); flash(`Leave request ${status.toLowerCase()}`); }
   catch(e) { error.value=e.response?.data?.message || 'Could not update leave request.'; }
+}
+async function loadPayrollConfiguration() {
+  try {
+    const [configuration, loanData, fbtData] = await Promise.all([
+      apiGet('/api/payroll/configuration/codes'), apiGet('/api/payroll/loans'), apiGet('/api/payroll/fbt-rates')
+    ]);
+    payrollConfig.value=configuration; loans.value=loanData.loans || []; fbtRates.value=fbtData.rates || [];
+  } catch (e) { error.value=e.response?.data?.message || 'Could not load payroll configuration.'; }
+}
+async function createPayrollCode() {
+  try {
+    await api.post('/api/payroll/configuration/codes', { ...codeForm, default_amount:Number(codeForm.default_amount || 0), default_percentage:Number(codeForm.default_percentage || 0), effective_from:codeForm.effective_from || null, effective_to:codeForm.effective_to || null });
+    Object.assign(codeForm,{code:'',name:'',kind:'earning',calculation_method:'fixed',default_amount:0,default_percentage:0,percentage_basis:'basic_salary',taxable:true,affects_nssf:false,affects_shif:false,affects_housing_levy:false,effective_from:'',effective_to:''});
+    await loadPayrollConfiguration(); flash('Payroll code created');
+  } catch(e) { error.value=e.response?.data?.message || 'Could not create payroll code.'; }
+}
+async function assignPayrollCode() {
+  try {
+    await api.post('/api/payroll/configuration/assignments', { ...assignmentForm, employee_id:Number(assignmentForm.employee_id), payroll_code_id:Number(assignmentForm.payroll_code_id), effective_from:assignmentForm.effective_from || null, effective_to:assignmentForm.effective_to || null });
+    Object.assign(assignmentForm,{employee_id:'',payroll_code_id:'',calculation_method:'',amount:0,percentage:0,effective_from:'',effective_to:''});
+    await loadPayrollConfiguration(); flash('Code assigned to employee');
+  } catch(e) { error.value=e.response?.data?.message || 'Could not assign payroll code.'; }
+}
+async function createLoan() {
+  try {
+    await api.post('/api/payroll/loans', { ...loanForm, employee_id:Number(loanForm.employee_id), principal_amount:Number(loanForm.principal_amount), annual_interest_rate:Number(loanForm.annual_interest_rate || 0), monthly_repayment:Number(loanForm.monthly_repayment), disbursed_at:loanForm.disbursed_at || null });
+    Object.assign(loanForm,{employee_id:'',loan_number:'',loan_type:'Staff loan',principal_amount:0,annual_interest_rate:0,monthly_repayment:0,disbursed_at:'',first_repayment_date:'',term_months:12,notes:''});
+    await loadPayrollConfiguration(); flash('Loan created in Pending status');
+  } catch(e) { error.value=e.response?.data?.message || 'Could not create loan.'; }
+}
+async function setLoanStatus(loan, status) {
+  try { await api.patch(`/api/payroll/loans/${loan.id}/status`, { status }); await loadPayrollConfiguration(); flash(`Loan ${status.toLowerCase()}`); }
+  catch(e) { error.value=e.response?.data?.message || 'Could not update loan.'; }
+}
+async function createFbtRate() {
+  try {
+    await api.post('/api/payroll/fbt-rates', { ...fbtForm, prescribed_annual_rate:Number(fbtForm.prescribed_annual_rate), fbt_tax_rate:fbtForm.fbt_tax_rate === '' ? null : Number(fbtForm.fbt_tax_rate), effective_to:fbtForm.effective_to || null });
+    Object.assign(fbtForm,{effective_from:'',effective_to:'',prescribed_annual_rate:0,fbt_tax_rate:30,source_reference:''});
+    await loadPayrollConfiguration(); flash('FBT rate saved');
+  } catch(e) { error.value=e.response?.data?.message || 'Could not save FBT rate.'; }
 }
 async function processPayroll(periodId) {
   if (!periodId) return;
@@ -244,6 +292,67 @@ onMounted(async () => {
           <div class="page-heading"><div><span class="eyebrow">PAYROLL</span><h1>Payroll command center</h1><p>Kenyan PAYE, NSSF, SHIF and housing levy calculations.</p></div><select v-if="canProcessPayroll" class="period-select" @change="processPayroll($event.target.value)"><option value="">Process a period…</option><option v-for="period in payroll.periods" :key="period.id" :value="period.id">{{ period.name }} • {{ period.status }}</option></select></div>
           <div class="stats-grid"><div class="stat-card"><span>Gross payroll</span><strong>{{ money(payrollTotal) }}</strong><small>Loaded transactions</small></div><div class="stat-card"><span>Net payroll</span><strong>{{ money(netPayroll) }}</strong><small>After statutory deductions</small></div><div class="stat-card"><span>Transactions</span><strong>{{ payroll.transactions.length }}</strong><small>Processed records</small></div><div class="stat-card"><span>Open periods</span><strong>{{ payroll.periods.filter(p=>p.status==='Open').length }}</strong><small>Ready to process</small></div></div>
           <div class="panel table-panel"><div class="panel-head"><div><h2>Payroll transactions</h2><p>Download individual payslips from the table.</p></div></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Period</th><th>Gross</th><th>PAYE</th><th>NSSF</th><th>SHIF</th><th>Net pay</th><th></th></tr></thead><tbody><tr v-for="t in payroll.transactions" :key="t.id"><td><strong>{{ fullName(t.employee) }}</strong></td><td>{{ t.period?.name }}</td><td>{{ money(t.gross_pay) }}</td><td>{{ money(t.paye) }}</td><td>{{ money(t.nssf) }}</td><td>{{ money(t.shif) }}</td><td class="salary">{{ money(t.net_pay) }}</td><td class="right"><button class="action-btn" @click="downloadPayslip(t.id)"><i class="bi bi-file-earmark-pdf"></i></button></td></tr><tr v-if="!payroll.transactions.length"><td colspan="8"><div class="empty-state">No payroll transactions yet. Process an open period to calculate payroll.</div></td></tr></tbody></table></div></div>
+          <template v-if="canProcessPayroll">
+            <div class="panel mt-4">
+              <div class="panel-head"><div><h2>Custom payroll codes</h2><p>Create company-specific earnings, deductions, benefits and employer contributions.</p></div></div>
+              <form class="config-grid" @submit.prevent="createPayrollCode">
+                <input v-model="codeForm.code" placeholder="Code (e.g. COMMISSION)" required maxlength="40">
+                <input v-model="codeForm.name" placeholder="Display name" required>
+                <select v-model="codeForm.kind"><option value="earning">Earning</option><option value="deduction">Deduction</option><option value="benefit">Benefit</option><option value="employer_contribution">Employer contribution</option></select>
+                <select v-model="codeForm.calculation_method"><option value="fixed">Fixed amount</option><option value="percentage">Percentage</option></select>
+                <input v-if="codeForm.calculation_method==='fixed'" v-model.number="codeForm.default_amount" type="number" min="0" step=".01" placeholder="Default amount">
+                <input v-else v-model.number="codeForm.default_percentage" type="number" min="0" max="100" step=".01" placeholder="Default percentage">
+                <select v-model="codeForm.percentage_basis"><option value="basic_salary">Percentage of basic</option><option value="gross">Percentage of gross</option></select>
+                <label><input v-model="codeForm.taxable" type="checkbox"> Taxable pay</label>
+                <label><input v-model="codeForm.affects_nssf" type="checkbox"> NSSF base</label>
+                <label><input v-model="codeForm.affects_shif" type="checkbox"> SHIF base</label>
+                <label><input v-model="codeForm.affects_housing_levy" type="checkbox"> Housing levy base</label>
+                <input v-model="codeForm.effective_from" type="date" aria-label="Effective from">
+                <input v-model="codeForm.effective_to" type="date" aria-label="Effective to">
+                <button class="primary-btn" type="submit">Add payroll code</button>
+              </form>
+              <div class="table-wrap mt-3"><table><thead><tr><th>Code</th><th>Name</th><th>Type</th><th>Method</th><th>Active</th></tr></thead><tbody><tr v-for="code in payrollConfig.codes" :key="code.id"><td>{{ code.code }}</td><td>{{ code.name }}</td><td>{{ code.kind }}</td><td>{{ code.calculation_method }}</td><td>{{ code.active ? 'Yes' : 'No' }}</td></tr><tr v-if="!payrollConfig.codes.length"><td colspan="5">No custom codes configured.</td></tr></tbody></table></div>
+              <div class="panel-head mt-3"><div><h2>Assign a code to an employee</h2><p>Effective-dated employee-specific amount or percentage.</p></div></div>
+              <form class="config-grid" @submit.prevent="assignPayrollCode">
+                <select v-model="assignmentForm.employee_id" required><option value="">Choose employee</option><option v-for="e in employees.data" :key="e.id" :value="e.id">{{ fullName(e) }} ({{ e.employee_no }})</option></select>
+                <select v-model="assignmentForm.payroll_code_id" required><option value="">Choose code</option><option v-for="code in payrollConfig.codes.filter(c=>c.active)" :key="code.id" :value="code.id">{{ code.code }} — {{ code.name }}</option></select>
+                <select v-model="assignmentForm.calculation_method"><option value="">Use code default</option><option value="fixed">Fixed amount</option><option value="percentage">Percentage</option></select>
+                <input v-model.number="assignmentForm.amount" type="number" min="0" step=".01" placeholder="Assigned amount">
+                <input v-model.number="assignmentForm.percentage" type="number" min="0" max="100" step=".01" placeholder="Assigned percentage">
+                <input v-model="assignmentForm.effective_from" type="date" aria-label="Assignment effective from">
+                <input v-model="assignmentForm.effective_to" type="date" aria-label="Assignment effective to">
+                <button class="primary-btn" type="submit">Assign code</button>
+              </form>
+            </div>
+            <div class="panel mt-4">
+              <div class="panel-head"><div><h2>Employee loans</h2><p>Track disbursements and payroll repayments. Pending loans are not deducted.</p></div></div>
+              <form class="config-grid" @submit.prevent="createLoan">
+                <select v-model="loanForm.employee_id" required><option value="">Choose employee</option><option v-for="e in employees.data" :key="e.id" :value="e.id">{{ fullName(e) }} ({{ e.employee_no }})</option></select>
+                <input v-model="loanForm.loan_number" placeholder="Loan reference" required>
+                <input v-model="loanForm.loan_type" placeholder="Loan type" required>
+                <input v-model.number="loanForm.principal_amount" type="number" min=".01" step=".01" placeholder="Principal amount" required>
+                <input v-model.number="loanForm.annual_interest_rate" type="number" min="0" max="100" step=".01" placeholder="Employee annual interest %">
+                <input v-model.number="loanForm.monthly_repayment" type="number" min=".01" step=".01" placeholder="Monthly repayment" required>
+                <input v-model="loanForm.disbursed_at" type="date" aria-label="Disbursed at">
+                <input v-model="loanForm.first_repayment_date" type="date" aria-label="First repayment date" required>
+                <input v-model.number="loanForm.term_months" type="number" min="1" max="600" placeholder="Term months" required>
+                <button class="primary-btn" type="submit">Create pending loan</button>
+              </form>
+              <div class="table-wrap mt-3"><table><thead><tr><th>Employee</th><th>Loan</th><th>Principal</th><th>Monthly</th><th>Status</th><th>Action</th></tr></thead><tbody><tr v-for="loan in loans" :key="loan.id"><td>{{ fullName(loan.employee) }}</td><td>{{ loan.loan_number }}</td><td>{{ money(loan.principal_amount) }}</td><td>{{ money(loan.monthly_repayment) }}</td><td>{{ loan.status }}</td><td><button v-if="loan.status==='Pending' && loan.disbursed_at" class="action-btn approve" @click="setLoanStatus(loan,'Active')">Activate</button><button v-if="loan.status==='Active'" class="action-btn reject" @click="setLoanStatus(loan,'Cancelled')">Cancel</button></td></tr><tr v-if="!loans.length"><td colspan="6">No employee loans recorded.</td></tr></tbody></table></div>
+            </div>
+            <div class="panel mt-4">
+              <div class="panel-head"><div><h2>Quarterly FBT rates</h2><p>Store effective-dated prescribed rates and the applicable employer FBT tax rate.</p></div></div>
+              <form class="config-grid" @submit.prevent="createFbtRate">
+                <input v-model="fbtForm.effective_from" type="date" aria-label="FBT effective from" required>
+                <input v-model="fbtForm.effective_to" type="date" aria-label="FBT effective to">
+                <input v-model.number="fbtForm.prescribed_annual_rate" type="number" min="0" max="100" step=".0001" placeholder="Prescribed annual rate %" required>
+                <input v-model.number="fbtForm.fbt_tax_rate" type="number" min="0" max="100" step=".01" placeholder="FBT tax rate %" required>
+                <input v-model="fbtForm.source_reference" placeholder="KRA/source reference" required>
+                <button class="primary-btn" type="submit">Save FBT rate</button>
+              </form>
+              <div class="table-wrap mt-3"><table><thead><tr><th>Effective</th><th>Prescribed rate</th><th>FBT tax rate</th><th>Source</th></tr></thead><tbody><tr v-for="rate in fbtRates" :key="rate.id"><td>{{ rate.effective_from }} – {{ rate.effective_to || 'Open' }}</td><td>{{ rate.prescribed_annual_rate }}%</td><td>{{ rate.fbt_tax_rate ?? 'Not set' }}%</td><td>{{ rate.source_reference }}</td></tr><tr v-if="!fbtRates.length"><td colspan="4">No FBT rates configured. FBT remains zero until a sourced rate is entered.</td></tr></tbody></table></div>
+            </div>
+          </template>
         </section>
 
         <section v-else-if="active==='organization'">
