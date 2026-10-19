@@ -49,7 +49,7 @@ class PayrollCalculationService
                 ->where(fn ($q) => $q->whereNull('effective_to')->orWhereDate('effective_to', '>=', $periodStart->toDateString()))
                 ->orderByDesc('effective_from')->first();
 
-            $totals = ['gross' => 0, 'paye' => 0, 'nssf' => 0, 'shif' => 0, 'housing' => 0, 'net' => 0];
+            $totals = ['gross' => 0, 'paye' => 0, 'nssf' => 0, 'shif' => 0, 'housing' => 0, 'net' => 0, 'fbt' => 0];
 
             foreach ($employees as $employee) {
                 $basic = (float) $employee->basic_salary;
@@ -152,6 +152,7 @@ class PayrollCalculationService
                 $totals['shif'] += $shifAmount;
                 $totals['housing'] += $housingAmount;
                 $totals['net'] += $net;
+                $totals['fbt'] += $employerFbt;
             }
 
             $run = PayrollRun::create([
@@ -159,7 +160,7 @@ class PayrollCalculationService
                 'total_employees' => $employees->count(), 'total_gross' => $this->money($totals['gross']),
                 'total_paye' => $this->money($totals['paye']), 'total_nssf' => $this->money($totals['nssf']),
                 'total_shif' => $this->money($totals['shif']), 'total_housing_levy' => $this->money($totals['housing']),
-                'total_net' => $this->money($totals['net']), 'processed_by' => $userId,
+                'total_net' => $this->money($totals['net']), 'total_employer_fbt' => $this->money($totals['fbt']), 'processed_by' => $userId,
                 'status' => 'Submitted', 'processed_at' => now(),
             ]);
             $period->update(['status' => 'Processed']);
