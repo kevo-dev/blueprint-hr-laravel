@@ -105,7 +105,7 @@ class PayrollCalculationService
                     ->where('employee_id', $employee->id)->where('status', 'Active')
                     ->whereDate('first_repayment_date', '<=', $periodEnd->toDateString())->lockForUpdate()->get();
                 foreach ($loans as $loan) {
-                    $alreadyRepaid = (float) LoanRepayment::query()->where('employee_loan_id', $loan->id)->sum('amount');
+                    $alreadyRepaid = (float) LoanRepayment::query()->where('employee_loan_id', $loan->id)->sum('principal_component');
                     $balanceBefore = max(0, (float) $loan->principal_amount - $alreadyRepaid);
                     if ($balanceBefore <= 0) {
                         $loan->update(['status' => 'Settled']);
@@ -113,12 +113,21 @@ class PayrollCalculationService
                     }
                     $alreadyForPeriod = LoanRepayment::query()->where('employee_loan_id', $loan->id)->where('payroll_period_id', $period->id)->exists();
                     if (!$alreadyForPeriod) {
-                        $repayment = min($balanceBefore, (float) $loan->monthly_repayment, max(0, $gross - $paye - $nssfAmount - $shifAmount - $housingAmount - $otherDeductions));
+                        $interestDue = round($balanceBefore * ((float) $loan->annual_interest_rate / 100) / 12, 2);
+                        $availableForRepayment = max(0, $gross - $paye - $nssfAmount - $shifAmount - $housingAmount - $otherDeductions);
+                        $repayment = min($balanceBefore + $interestDue, (float) $loan->monthly_repayment, $availableForRepayment);
                         if ($repayment > 0) {
-                            $balanceAfter = max(0, $balanceBefore - $repayment);
-                            LoanRepayment::create(['tenant_id' => $period->tenant_id, 'employee_loan_id' => $loan->id, 'payroll_period_id' => $period->id, 'amount' => $this->money($repayment), 'balance_after' => $this->money($balanceAfter)]);
+                            $interestPaid = min($interestDue, $repayment);
+                            $principalPaid = min($balanceBefore, max(0, $repayment - $interestPaid));
+                            $balanceAfter = max(0, $balanceBefore - $principalPaid);
+                            LoanRepayment::create([
+                                'tenant_id' => $period->tenant_id, 'employee_loan_id' => $loan->id,
+                                'payroll_period_id' => $period->id, 'amount' => $this->money($repayment),
+                                'principal_component' => $this->money($principalPaid), 'interest_component' => $this->money($interestPaid),
+                                'balance_after' => $this->money($balanceAfter),
+                            ]);
                             $otherDeductions += $repayment;
-                            $componentRows[] = ['code' => 'LOAN-'.$loan->loan_number, 'name' => 'Loan repayment', 'kind' => 'deduction', 'amount' => $repayment, 'taxable' => false];
+                            $componentRows[] = ['code' => 'LOAN-'.$loan->loan_number, 'name' => 'Loan repayment', 'kind' => 'deduction', 'amount' => $repayment, 'taxable' => false, 'principal' => $principalPaid, 'interest' => $interestPaid];
                             if ($balanceAfter <= 0) $loan->update(['status' => 'Settled']);
                         }
                     }
