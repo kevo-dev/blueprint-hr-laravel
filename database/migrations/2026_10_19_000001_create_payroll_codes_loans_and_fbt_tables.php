@@ -92,10 +92,16 @@ return new class extends Migration {
             $table->json('component_breakdown')->nullable();
             $table->decimal('employer_fbt', 15, 2)->default(0);
         });
+        Schema::table('payroll_runs', function (Blueprint $table) {
+            $table->decimal('total_employer_fbt', 15, 2)->default(0);
+        });
     }
 
     public function down(): void
     {
+        Schema::table('payroll_runs', function (Blueprint $table) {
+            $table->dropColumn('total_employer_fbt');
+        });
         Schema::table('payroll_transactions', function (Blueprint $table) {
             $table->dropColumn(['component_breakdown', 'employer_fbt']);
         });
