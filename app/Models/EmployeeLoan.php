@@ -20,6 +20,6 @@ class EmployeeLoan extends Model
     public function repayments() { return $this->hasMany(LoanRepayment::class); }
     public function getOutstandingBalanceAttribute(): float
     {
-        return max(0, (float) $this->principal_amount - (float) $this->repayments()->sum('amount'));
+        return max(0, (float) $this->principal_amount - (float) $this->repayments()->sum('principal_component'));
     }
 }
