@@ -121,7 +121,8 @@ class PayrollConfigurationController extends Controller
             'notes' => 'nullable|string|max:2000',
         ]);
         Employee::query()->forTenant($tenantId)->findOrFail($data['employee_id']);
-        $loan = EmployeeLoan::create($data + ['tenant_id' => $tenantId, 'annual_interest_rate' => 0, 'status' => 'Pending']);
+        $data['annual_interest_rate'] = $data['annual_interest_rate'] ?? 0;
+        $loan = EmployeeLoan::create($data + ['tenant_id' => $tenantId, 'status' => 'Pending']);
         $this->audit->record('CREATE', 'EmployeeLoan', $loan->id, null, $loan->toArray());
         return response()->json(['loan' => $loan->load('employee')], 201);
     }
