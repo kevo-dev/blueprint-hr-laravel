@@ -32,7 +32,7 @@ const fbtRates = ref([]);
 const codeForm = reactive({ code:'', name:'', kind:'earning', calculation_method:'fixed', default_amount:0, default_percentage:0, percentage_basis:'basic_salary', taxable:true, affects_nssf:false, affects_shif:false, affects_housing_levy:false, effective_from:'', effective_to:'' });
 const assignmentForm = reactive({ employee_id:'', payroll_code_id:'', calculation_method:'', amount:0, percentage:0, effective_from:'', effective_to:'' });
 const loanForm = reactive({ employee_id:'', loan_number:'', loan_type:'Staff loan', principal_amount:0, annual_interest_rate:0, monthly_repayment:0, disbursed_at:'', first_repayment_date:'', term_months:12, notes:'' });
-const fbtForm = reactive({ effective_from:'', effective_to:'', prescribed_annual_rate:0, fbt_tax_rate:30, source_reference:'' });
+const fbtForm = reactive({ effective_from:'', effective_to:'', prescribed_annual_rate:0, fbt_tax_rate:'', source_reference:'' });
 const login = reactive({ email: '', password: '', remember: false });
 const employeeForm = reactive({ employee_no:'', first_name:'', middle_name:'', last_name:'', email:'', phone:'', employment_status:'Active', basic_salary:0, branch_id:null, department_id:null });
 const leaveForm = reactive({ employee_id:null, leave_type_id:null, start_date:'', end_date:'', days_requested:1, reason:'' });
@@ -168,7 +168,7 @@ async function setLoanStatus(loan, status) {
 async function createFbtRate() {
   try {
     await api.post('/api/payroll/fbt-rates', { ...fbtForm, prescribed_annual_rate:Number(fbtForm.prescribed_annual_rate), fbt_tax_rate:fbtForm.fbt_tax_rate === '' ? null : Number(fbtForm.fbt_tax_rate), effective_to:fbtForm.effective_to || null });
-    Object.assign(fbtForm,{effective_from:'',effective_to:'',prescribed_annual_rate:0,fbt_tax_rate:30,source_reference:''});
+    Object.assign(fbtForm,{effective_from:'',effective_to:'',prescribed_annual_rate:0,fbt_tax_rate:'',source_reference:''});
     await loadPayrollConfiguration(); flash('FBT rate saved');
   } catch(e) { error.value=e.response?.data?.message || 'Could not save FBT rate.'; }
 }
@@ -290,8 +290,8 @@ onMounted(async () => {
 
         <section v-else-if="active==='payroll'">
           <div class="page-heading"><div><span class="eyebrow">PAYROLL</span><h1>Payroll command center</h1><p>Kenyan PAYE, NSSF, SHIF and housing levy calculations.</p></div><select v-if="canProcessPayroll" class="period-select" @change="processPayroll($event.target.value)"><option value="">Process a period…</option><option v-for="period in payroll.periods" :key="period.id" :value="period.id">{{ period.name }} • {{ period.status }}</option></select></div>
-          <div class="stats-grid"><div class="stat-card"><span>Gross payroll</span><strong>{{ money(payrollTotal) }}</strong><small>Loaded transactions</small></div><div class="stat-card"><span>Net payroll</span><strong>{{ money(netPayroll) }}</strong><small>After statutory deductions</small></div><div class="stat-card"><span>Transactions</span><strong>{{ payroll.transactions.length }}</strong><small>Processed records</small></div><div class="stat-card"><span>Open periods</span><strong>{{ payroll.periods.filter(p=>p.status==='Open').length }}</strong><small>Ready to process</small></div></div>
-          <div class="panel table-panel"><div class="panel-head"><div><h2>Payroll transactions</h2><p>Download individual payslips from the table.</p></div></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Period</th><th>Gross</th><th>PAYE</th><th>NSSF</th><th>SHIF</th><th>Net pay</th><th></th></tr></thead><tbody><tr v-for="t in payroll.transactions" :key="t.id"><td><strong>{{ fullName(t.employee) }}</strong></td><td>{{ t.period?.name }}</td><td>{{ money(t.gross_pay) }}</td><td>{{ money(t.paye) }}</td><td>{{ money(t.nssf) }}</td><td>{{ money(t.shif) }}</td><td class="salary">{{ money(t.net_pay) }}</td><td class="right"><button class="action-btn" @click="downloadPayslip(t.id)"><i class="bi bi-file-earmark-pdf"></i></button></td></tr><tr v-if="!payroll.transactions.length"><td colspan="8"><div class="empty-state">No payroll transactions yet. Process an open period to calculate payroll.</div></td></tr></tbody></table></div></div>
+          <div class="stats-grid"><div class="stat-card"><span>Gross payroll</span><strong>{{ money(payrollTotal) }}</strong><small>Loaded transactions</small></div><div class="stat-card"><span>Net payroll</span><strong>{{ money(netPayroll) }}</strong><small>After statutory deductions</small></div><div class="stat-card"><span>Transactions</span><strong>{{ payroll.transactions.length }}</strong><small>Processed records</small></div><div class="stat-card"><span>Employer FBT</span><strong>{{ money(payroll.transactions.reduce((sum,t)=>sum+Number(t.employer_fbt || 0),0)) }}</strong><small>Separate from employee PAYE</small></div><div class="stat-card"><span>Open periods</span><strong>{{ payroll.periods.filter(p=>p.status==='Open').length }}</strong><small>Ready to process</small></div></div>
+          <div class="panel table-panel"><div class="panel-head"><div><h2>Payroll transactions</h2><p>Download individual payslips from the table.</p></div></div><div class="table-wrap"><table><thead><tr><th>Employee</th><th>Period</th><th>Gross</th><th>PAYE</th><th>NSSF</th><th>SHIF</th><th>Net pay</th><th>Employer FBT</th><th></th></tr></thead><tbody><tr v-for="t in payroll.transactions" :key="t.id"><td><strong>{{ fullName(t.employee) }}</strong></td><td>{{ t.period?.name }}</td><td>{{ money(t.gross_pay) }}</td><td>{{ money(t.paye) }}</td><td>{{ money(t.nssf) }}</td><td>{{ money(t.shif) }}</td><td class="salary">{{ money(t.net_pay) }}</td><td>{{ money(t.employer_fbt) }}</td><td class="right"><button class="action-btn" @click="downloadPayslip(t.id)"><i class="bi bi-file-earmark-pdf"></i></button></td></tr><tr v-if="!payroll.transactions.length"><td colspan="9"><div class="empty-state">No payroll transactions yet. Process an open period to calculate payroll.</div></td></tr></tbody></table></div></div>
           <template v-if="canProcessPayroll">
             <div class="panel mt-4">
               <div class="panel-head"><div><h2>Custom payroll codes</h2><p>Create company-specific earnings, deductions, benefits and employer contributions.</p></div></div>
@@ -346,7 +346,7 @@ onMounted(async () => {
                 <input v-model="fbtForm.effective_from" type="date" aria-label="FBT effective from" required>
                 <input v-model="fbtForm.effective_to" type="date" aria-label="FBT effective to">
                 <input v-model.number="fbtForm.prescribed_annual_rate" type="number" min="0" max="100" step=".0001" placeholder="Prescribed annual rate %" required>
-                <input v-model.number="fbtForm.fbt_tax_rate" type="number" min="0" max="100" step=".01" placeholder="FBT tax rate %" required>
+                <input v-model="fbtForm.fbt_tax_rate" type="number" min="0" max="100" step=".01" placeholder="FBT tax rate % (optional; sourced)">
                 <input v-model="fbtForm.source_reference" placeholder="KRA/source reference" required>
                 <button class="primary-btn" type="submit">Save FBT rate</button>
               </form>
